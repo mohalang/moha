@@ -83,7 +83,6 @@ def interpret_bytecode(frame, bc):
     bytecode = bc.code
     pc = 0
     frame_stack = []
-    print bc.dump()
     while True:
         driver.jit_merge_point(pc=pc, bytecode=bytecode, bc=bc, frame=frame)
         if pc >= len(bytecode):
