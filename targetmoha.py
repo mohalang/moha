@@ -500,7 +500,6 @@ def interpret_bytecode(frame, bc):
                     frame.vars[index] = arg
                 if len(args) != len(frame.vars):
                     frame.vars[len(args)] = Function(bc, None)
-            print bc.dump()
         elif c == Code.RETURN_VALUE:
             retval = frame.pop()
             frame, bc, pc = frame_stack.pop()
