@@ -1,0 +1,12 @@
+nums = [1, 2];
+object = {"array": nums};
+print("array:");
+print(object.array);
+print("push:");
+object.array.push(1);
+print(object.array);
+print("pop:");
+object.array.pop();
+print(object.array);
+print("index:");
+print(object.array.index(1));
