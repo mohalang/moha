@@ -17,6 +17,14 @@ Starts with your journey from [Tutorial](/tutorial.html)!
 
 A wiki maintained by the Moha community.
 
+## [Library Reference](/library/index.html)
+
+This describes language standard libraries.
+
+## [Language Reference](/reference/index.html)
+
+This describes syntax and language elements.
+
 ## Copyright
 
 Moha and this document is:
