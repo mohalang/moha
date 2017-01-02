@@ -33,6 +33,7 @@
     - [Atoms Expressions](#atoms-expressions)
     - [Variables Expressions](#variables-expressions)
     - [Selectors Expressions](#selectors-expressions)
+    - [Parenthesized Form](#parenthesized-form)
     - [Array Expressions](#array-expressions)
     - [Object Expressions](#object-expressions)
     - [Primaries Expressions](#primaries-expressions)
@@ -55,8 +56,7 @@
     - [If Statements](#if-statements)
     - [Do Statements](#do-statements)
     - [Def Statements](#def-statements)
-- [Source File Organization](#source-file-organization)
-    - [Package Naming](#package-naming)
+- [Organization](#organization)
     - [Export Package](#export-package)
     - [Import Package](#import-package)
 
@@ -274,8 +274,6 @@ acts like variables.
 
 The variables in a code block will be registered in the frame.
 
-If a variable is bound in a block, it is a local variable of that block, unless declared as global.
-
 Statement `del` unbind the variable and the value. The value will be
 garbage-collected later automatically.
 
@@ -371,31 +369,191 @@ The function's signature declares parameters.
 The function body is a statement list.
 
 ## Expression
-### Atoms Expressions
-### Variables Expressions
-### Selectors Expressions
-### Array Expressions
-### Object Expressions
-### Primaries Expressions
+
+An expression specifies the evaluation of a value.
+
+```
+expression: unary_expression | binary_expression;
+unary_expression: primary_expression | unary_op unary_expression;
+binary_expression: expression binary_op expression;
+unary_op: "+" | "-" | "!";
+binary_op: "||" | "&&" | "==" | "!=" | "<" | "<=" | ">" | ">=" | "+" | "-" | "|" | "^" | "*" | "/" | "%" | "<<" | ">>" | "&" | "&^";
+```
+
 ### Bitwise Operations
 ### Arithmetic Operations
 ### Comparison Operations
 ### Boolean Operations
-### Closures
-### Calls
+
+### Parenthesized Form
+
+```
+parenthesized_form: ["("] <expression> [")"];
+```
+
+### Atoms Expressions
+
+```
+atom: literal | operand_name | selector | parenthesized_form;
+```
+
+### Variables Expressions
+
+See section [Identifiers](#identifiers) for lexical definition.
+See section [Variables](#variables) and [Resolution](#resolution) for binding and resolution.
+
+### Array Expressions
+
+```
+array: "[" array_elements? "]";
+array_elements: expression ([","] expression)* ","?;
+```
+
+### Object Expressions
+
+```
+object: "{" object_entries? "}";
+object_entries: object_entry ([","] object_entry)* ","?;
+object_entry: object_identifier_entry | object_string_entry;
+object_identifier_entry: identifier ":" expression;
+object_string_entry: string_literal ":" expression;
+object_entry_value: expression | closure;
+closure: "def" "(" "this" args ")" block;
+```
+
+### Primaries Expressions
+
+```
+primary_expression: atom | primary_expression selector | primary_expression arguments;
+
+selector: <identifier_selector> | <index_selector>;
+identifier_selector: ["."] identifier;
+index_selector: ["["] expression ["]"];
+
+expressions: expression ([","] <expression>)*;
+arguments: ["("] (expressions ","?)? [")"];
+```
+
 ### Operator Precedence
-## Block
+
+## Statements
+
+```
+statement: simple_statement | compound_statement;
+```
+
 ## Simple Statements
-### Empty Statements
+
+```
+simple_statement: (<expression> | <assignment> | <return> | <pass> | <abort>)? [";"];
+```
+
 ### Assignment Statements
+
+```
+assignment: assign_to_identifier | assign_to_selector;
+assign_to_identifier: identifier "=" expression;
+assign_to_selector: selector "=" expression;
+```
 ### Return Statements
+
+```
+return: "return" expression;
+```
+
 ### Pass Statements
+
+```
+pass: "pass";
+```
+
 ### Abort Statements
+
+```
+abort: "abort" expression;
+```
+
 ## Compound Statements
+
+```
+compound_statement: block | if | do | def;
+```
+
+### Block Statements
+
+```
+statements: statement*;
+block: "{" statements "}";
+```
+
 ### If Statements
+
+```
+if: "if" guardcommand+;
+guardcommand: "(" expression ")" block;
+```
+
 ### Do Statements
+
+    do: "do" guardcommand+;
+
 ### Def Statements
-## Project Organization
-### Package Naming
-### Import Package
+
+    def: "def" identifier "(" args ")" block;
+    args: identifier [","] args | identifier?;
+
+## Organization
+
+Moha programs are organized by import and export.
+
+A package is exposed to other modules by `export` members to them.
+Other modules can `import` either entire module or members from modules.
+Members can be constants, variables, functions.
+
+Export statement should be written as the first statement of the source file.
+Export statement could be omitted if the source file is served as a entry script.
+Import statement should follow export statement and be written before any other statements.
+
+Example:
+
+    export * as "http";
+
+    import request from "http/request";
+
+    def get(url, params, headers) {
+        return request('get', url, params, headers);
+    }
+
 ### Export Package
+
+Grammar:
+
+    export: export_all_members_as_module [";"] | export_selected_members_as_module [";"];
+    export_all_members_as_module: "export" "*" "as" STRING_LITERAL;
+    export_selected_members_as_module: "export" export_members "as" STRING_LITERAL;
+
+Example:
+
+    // export all members as package
+    export * as "http";
+
+    // export selected members as package
+    export get, post, put, delete as "http";
+
+### Import Package
+
+Grammar:
+
+    import: import_module [";"] | import_members_from_module [";"];
+    import_module: "import" STRING_LITERAL;
+    import_members_from_module: "import" import_members "from" STRING_LITERAL;
+    import_members: (IDENTIFIER ",")* IDENTIFIER;
+
+Example:
+
+    // import_module
+    import "io";
+
+    // import_members_from_module
+    import print from "io";
+    import print, open from "io";
