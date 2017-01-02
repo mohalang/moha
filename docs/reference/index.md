@@ -508,7 +508,7 @@ Moha programs are organized by import and export.
 
 A package is exposed to other modules by `export` members to them.
 Other modules can `import` either entire module or members from modules.
-Members can be constants, variables, functions.
+Members can be identifiers of variables and functions.
 
 Export statement should be written as the first statement of the source file.
 Export statement could be omitted if the source file is served as a entry script.
