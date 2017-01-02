@@ -475,32 +475,88 @@ abort: "abort" expression;
 
 ## Compound Statements
 
-```
-compound_statement: block | if | do | def;
-```
+There are 4 compound statements: block, if, do, def.
+
+    compound_statement: block | if | do | def;
 
 ### Block Statements
 
-```
-statements: statement*;
-block: "{" statements "}";
+Block statements are composed by a sequence of simple statements, wrapped by "{" and "}".
+
+Grammar:
+
+    block: "{" statement* "}";
+
+
+A block creates a variable scope. Any variables defined inside this scope is invisible from outside.
+
+Example:
+
+```moha
+{
+    a = 1;
+    print(a);
+}
+print(a); // `a` is an unresolved variable here.
 ```
 
 ### If Statements
 
-```
-if: "if" guardcommand+;
-guardcommand: "(" expression ")" block;
-```
+`If` statements are composed by several guardcommands.
+`If` statements would iterate guardcommands until a truthy guardcommand expression found.
+`If` statements would abort execution if no truthy guardcommand found.
+Guardcommands specify the the conditional execution of block according to the value of expression.
+`If` statements complete its execution after all statements in one of the guardcommand's block were executed.
+
+Grammar:
+
+    if: "if" guardcommand+;
+    guardcommand: "(" expression ")" block;
+
+Good Example:
+
+    a = input_number();
+    if (a > 1) { print("lt"); } (a < 1) { print("lt"); } (a == 1) { print("eq"); }
+
+Bad Example:
+
+    if (false) { print("failed"); } // abort!
 
 ### Do Statements
 
+`Do` statements are composed by several guardcommands.
+`Do` statements would iterate guardcommands until a truthy guardcommand expression found.
+`Do` statements would repeat iteration execution until no truthy guardcommand found.
+
+Grammar:
+
     do: "do" guardcommand+;
+
+Example:
+
+    a = 0
+    do (a < 10) { a = a + 1; }
+    print(a);
+
+Infinite loop:
+
+    do (true) { print("yes!"); }
+    print("unreachable here.");
 
 ### Def Statements
 
-    def: "def" identifier "(" args ")" block;
-    args: identifier [","] args | identifier?;
+`Def` statements specify user-defined function objects.
+The function definition does not execute the function body; this gets executed only when the function is called.
+
+Grammar:
+
+    def: "def" IDENTIFIER "(" args? ")" block;
+
+Example:
+
+    def add_zero(num) {
+        return num + 0;
+    }
 
 ## Organization
 
@@ -511,7 +567,9 @@ Other modules can `import` either entire module or members from modules.
 Members can be identifiers of variables and functions.
 
 Export statement should be written as the first statement of the source file.
+Export statement should only appear once at most.
 Export statement could be omitted if the source file is served as a entry script.
+
 Import statement should follow export statement and be written before any other statements.
 
 Example:
