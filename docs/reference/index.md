@@ -74,11 +74,11 @@ but regular. It's easy for developer to integrate code analysis tools.
 ## Notation
 
 The syntax is specified using Extended Backus-Naur Form (EBNF).
-The syntax file contains a sequence or rules. Every rule either describes a regular expression or a grammar rule. Example:
+The syntax file contains a sequence or rules. Every rule either describes a regular expression or a grammar rule.
 
-```
-main: statements* [EOF];
-```
+Grammar:
+
+    main: export? import* statement* [EOF];
 
 [Ignore](#ignore) and [Comments](#comments) are ignored by the syntax.
 Five categories of tokens form the vocabulary of Moha language.
@@ -92,9 +92,9 @@ in [Grammar Txt](https://github.com/mohalang/moha/blob/master/moha/vm/grammar/gr
 
 Whitespace, tab, and newline are ignored.
 
-```
-IGNORE: [ \t\n];
-```
+Grammar:
+
+    IGNORE: [ \t\n];
 
 ### Comments
 
@@ -102,9 +102,9 @@ A comment starts with `#` and stops at the end of the line.
 A comment cannot start inside [string literals](#string-literals).
 Comments are ignored by the syntax.
 
-```
-comment: "#.*"
-```
+Grammar:
+
+    comment: "#.*"
 
 ### Identifiers
 
@@ -114,18 +114,16 @@ An identifier is a sequence of one or more letters and digits.
 The first character in an identifier must be a letter.
 Identifiers (also referred to as names) are described by the following lexical definitions.
 
-```
-identifier = letter { letter | unicode_digit };
-```
+Grammar:
+
+    IDENTIFIER: "[a-zA-Z_][a-zA-Z0-9_]*";
 
 Examples:
 
-```
-a
-a1
-_变量
-server_⚙️
-```
+    tmp
+    filename
+    _variable
+    serverConfiguration
 
 Identifiers are predeclared for builtin functions and types.
 
@@ -189,9 +187,9 @@ The following tokens are delimiters:
 
 Literals are notations for constant values of some built-in types.
 
-```
-literal:  integer_literal | boolean_literal | float_literal | string_literal
-```
+Grammar:
+
+    literal: "true" | "false" | integer_literal | FLOAT_LITERAL | STRING_LITERAL;
 
 #### Integer Literals
 
@@ -199,47 +197,37 @@ An integer literal is a sequence of digits representing an integer constant.
 An optional prefix sets a non-decimal base: 0o or 0O for octal, 0b or 0B for binary, 0x or 0X for hexadecimal.
 Integer literals are described by the following lexical definitions:
 
-```
-integer_literal: decimal_literal | octal_literal | hex_literal | bin_literal;
-decimal_literal: "0|[1-9][0-9]*";
-octal_literal: "0[oO][0-7]+";
-hex_literal: "0[xX][0-9a-fA-F]+";
-bin_literal: "0[bB][01]+";
-```
+Grammar:
+
+    integer_literal: DECIMAL_LITERAL | OCTAL_LITERAL | HEX_LITERAL | BIN_LITERAL;
+    DECIMAL_LITERAL: "0|[1-9][0-9]*";
+    OCTAL_LITERAL: "0[oO][0-7]+";
+    HEX_LITERAL: "0[xX][0-9a-fA-F]+";
+    BIN_LITERAL: "0[bB][0-1]+";
 
 Examples
 
-```
-42
-0x93F2A32F
-0b0100101000001011
-0o413421
-```
-
-#### Boolean Literals
-
-An boolean literal has only 2 forms: true of false.
-
-```
-boolean_literal: "(true)|(false)";
-```
+    42
+    0x93F2A32F
+    0b0100101000001011
+    0O413421
 
 #### Floating Point Literals
 
 A floating point literal is a decimal representation of a float constant.
 Floating point literals are described by the following lexical definitions:
 
-```
-float_literal: "\-?(0|[1-9][0-9]*)(\.[0-9]+)([eE][\+\-]?[0-9]+)?";
-```
+Grammar:
+
+    FLOAT_LITERAL: "\-?(0|[1-9][0-9]*)(\.[0-9]+)([eE][\+\-]?[0-9]+)?";
 
 #### String Literals
 
 String literals are described by the following lexical definitions:
 
-```
-STRING: "\\"[^\\\\"]*\\"" | "'[^\\']*'";
-```
+Grammar:
+
+    STRING_LITERAL: "\\"[^\\\\"]*\\"" | "'[^\\']*'";
 
 ## Execution Model
 
@@ -322,9 +310,7 @@ The items of an Array are arbitrary Moha value.
 
 Example:
 
-```
-array = [null, true, false, 1, 1.0, 0xffff, {"key": "value"}];
-```
+    array = [null, true, false, 1, 1.0, 0xffff, {"key": "value"}];
 
 ### Object Type
 
@@ -332,9 +318,7 @@ The entries of an Object are a pair of String as key and artitrary Moha value as
 
 Example:
 
-```
-obj = {"key": "value"};
-```
+    obj = {"key": "value"};
 
 In particular, the value can be an anonymous function take `this` as first
 parameter. Inside function block, attribute getter syntax can be used to
@@ -342,25 +326,23 @@ retrieve or modify value through the key.
 
 Example:
 
-```
-import "math";
+    import "math";
 
-def Point(x, y) {
-  return {
-    "x": x,
-    "y": y,
-    "distance": def(this, point) {
-      return math.sqrt(
-        math.pow(this.x - point.x, 2) + math.pow(this.y - point.y, 2)
-      );
-    },
-    "move": def(this, x, y) {
-      this.x = x;
-      this.y = y;
+    def Point(x, y) {
+        return {
+            "x": x,
+            "y": y,
+            "distance": def(this, point) {
+            return math.sqrt(
+                math.pow(this.x - point.x, 2) + math.pow(this.y - point.y, 2)
+            );
+            },
+            "move": def(this, x, y) {
+            this.x = x;
+            this.y = y;
+            }
+        }
     }
-  }
-}
-```
 
 ### Function Type
 
@@ -372,30 +354,21 @@ The function body is a statement list.
 
 An expression specifies the evaluation of a value.
 
-```
-expression: unary_expression | binary_expression;
-unary_expression: primary_expression | unary_op unary_expression;
-binary_expression: expression binary_op expression;
-unary_op: "+" | "-" | "!";
-binary_op: "||" | "&&" | "==" | "!=" | "<" | "<=" | ">" | ">=" | "+" | "-" | "|" | "^" | "*" | "/" | "%" | "<<" | ">>" | "&" | "&^";
-```
+Grammar:
 
-### Bitwise Operations
-### Arithmetic Operations
-### Comparison Operations
-### Boolean Operations
+    expression: unary_expression | binary_expression;
+    unary_expression: primary_expression | unary_op unary_expression;
+    binary_expression: expression binary_op expression;
+    unary_op: "+" | "-" | "!";
+    binary_op: "||" | "&&" | "==" | "!=" | "<" | "<=" | ">" | ">=" | "+" | "-" | "|" | "^" | "*" | "/" | "%" | "<<" | ">>" | "&" | "&^";
 
 ### Parenthesized Form
 
-```
-parenthesized_form: ["("] <expression> [")"];
-```
+    parenthesized_form: ["("] <expression> [")"];
 
 ### Atoms Expressions
 
-```
-atom: literal | operand_name | selector | parenthesized_form;
-```
+    atom: literal | IDENTIFIER | array_literal | object_literal | parenthesized_form;
 
 ### Variables Expressions
 
@@ -404,73 +377,124 @@ See section [Variables](#variables) and [Resolution](#resolution) for binding an
 
 ### Array Expressions
 
-```
-array: "[" array_elements? "]";
-array_elements: expression ([","] expression)* ","?;
-```
+Grammar:
+
+    array_literal: "[" array_elements? "]";
+    array_elements: expression ([","] expression)* ","?;
+
+Example:
+
+    // array without elements
+    []
+
+    // array contains numbers
+    [1, 2, 3, 4]
+    [1, 2, 3, 4, ]
+
+    // array contains hybird types values
+    [1, "string", true, null, ]
 
 ### Object Expressions
 
-```
-object: "{" object_entries? "}";
-object_entries: object_entry ([","] object_entry)* ","?;
-object_entry: object_identifier_entry | object_string_entry;
-object_identifier_entry: identifier ":" expression;
-object_string_entry: string_literal ":" expression;
-object_entry_value: expression | closure;
-closure: "def" "(" "this" args ")" block;
-```
+Grammar:
+
+    object_literal: "{" object_entries? "}";
+    object_entries: object_entry ([","] object_entry)* ","?;
+    object_entry: object_identifier_entry | object_string_entry;
+    object_identifier_entry: IDENTIFIER ":" object_entry_value;
+    object_string_entry: STRING_LITERAL ":" object_entry_value;
+    object_entry_value: closure | expression;
+    closure: "def" ["("] args [")"] block;
+    args: IDENTIFIER [","] args | IDENTIFIER;
+
+Example:
+
+    // an object contains one entry
+    {"integer": 1}
+
+    // an object contains closure
+    {
+        "integer": 1,
+            "add_integer": def (this) {
+                this.integer = this.integer + 1;
+            }
+    }
 
 ### Primaries Expressions
 
-```
-primary_expression: atom | primary_expression selector | primary_expression arguments;
+Grammar:
 
-selector: <identifier_selector> | <index_selector>;
-identifier_selector: ["."] identifier;
-index_selector: ["["] expression ["]"];
+    primary_expression: atom primary_expression_rest*;
+    primary_expression_rest: selector | arguments;
 
-expressions: expression ([","] <expression>)*;
-arguments: ["("] (expressions ","?)? [")"];
-```
+    selector: <identifier_selector> | <index_selector>;
+    identifier_selector: ["."] IDENTIFIER;
+    index_selector: ["["] expression ["]"];
+
+    arguments: ["("] (expressions ","?)? [")"];
+
+    expressions: expression ([","] <expression>)*;
 
 ### Operator Precedence
 
 ## Statements
 
-```
-statement: simple_statement | compound_statement;
-```
+Grammar:
+
+    statement: compound_statement | simple_statement [";"];
 
 ## Simple Statements
 
-```
-simple_statement: (<expression> | <assignment> | <return> | <pass> | <abort>)? [";"];
-```
+Simple statements are minimal execution instruction.
 
-### Assignment Statements
+Grammar:
 
-```
-assignment: assign_to_identifier | assign_to_selector;
-assign_to_identifier: identifier "=" expression;
-assign_to_selector: selector "=" expression;
-```
-### Return Statements
-
-```
-return: "return" expression;
-```
+    simple_statement: pass | abort | return | assignment | expression ;
 
 ### Pass Statements
 
-```
-pass: "pass";
-```
+Pass statements do nothing.
+
+Grammar:
+
+    pass: "pass";
 
 ### Abort Statements
 
+Abort statements would terminate the execution of the program.
+It's unlike raise Exception or Error in other language.
+There is no way for Moha to `catch` these exceptions and then recovery execution.
+
+Grammar:
+
+    abort: "abort" expression;
+
+### Assignment Statements
+
+Assignment statements bind the value to the identifier under a certain scope.
+
+Grammar:
+
+    assignment: IDENTIFIER selector* ["="] expression;
+    selector: <identifier_selector> | <index_selector>;
+    identifier_selector: ["."] IDENTIFIER;
+    index_selector: ["["] expression ["]"];
+
+Example:
+
+    // assign to a variable
+    num = 1;
+
+    // assign to attribute of an object
+    obj.integer = 1;
+
+### Return Statements
+
+A "return" statement in a function F terminates the execution of F.
+The returned expression could be omitted.
+
 ```
-abort: "abort" expression;
+return: "return" expression*;
 ```
 
 ## Compound Statements
