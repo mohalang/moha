@@ -127,13 +127,15 @@ They are:
 - `true`
 - `false`
 - `null`
-- `def`
+- `pass`
+- `abort`
 - `if`
 - `do`
+- `def`
+- `return`
 - `import`
 - `export`
 - `as`
-- `return`
 
 ### Operators
 
@@ -223,24 +225,24 @@ String literals are described by the following lexical definitions:
 
 Grammar:
 
-    STRING_LITERAL: "\\"[^\\\\"]*\\"" | "'[^\\']*'";
+    STRING_LITERAL: "\\"[^\\\\"]*\\"";
 
 ## Execution Model
 
 A Moha program is constructed from code blocks. A block is a sequence of
 Moha statements executed one by one. The following are blocks:
 
-- Guard Command Body
+- Block
+- Guardcommand Block
 - Closure
 - Function
 - Module
-- Script File
 
-A code block is executed in an execution frame. A frame control code execution flow and procedure calls.
+A code block is executed in an execution frame. A frame control execution flow and procedure calls.
 
 ### Constants
 
-There are integer constants, boolean constants, floating-point constants, and string constants. A constant means that it cannot be modified.
+There are integer constants, boolean constants, floating-point constants, and string constants. A constant cannot be modified.
 
 The constants in a code block will be registered in the frame.
 
