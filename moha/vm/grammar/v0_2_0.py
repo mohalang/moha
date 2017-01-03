@@ -10,16 +10,18 @@ grammar_dir = os.path.dirname(os.path.abspath(__file__))
 grammar = py.path.local(grammar_dir).join('v0_2_0.txt').read("rt")
 regexs, rules, ToAST = parse_ebnf(grammar)
 _parse = make_parse_function(regexs, rules, eof=True)
+to_ast = ToAST()
 
 def parse_source(filename, source):
     try:
-        return _parse(source)
+        tree = _parse(source)
+        return to_ast.transform(tree)
     except ParseError as e:
         print(e.nice_error_message(filename, source))
-        return
+        raise
     except LexerError as e:
         print(e.nice_error_message(filename))
-        return
+        raise
 
 if __name__ == '__main__':
     import sys
