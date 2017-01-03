@@ -2,10 +2,9 @@
 
 - [Introduction](#introduction)
 - [Notation](#notation)
-- [Lexical analysis](#lexical-analysis)
+- [Lexical Analysis](#lexical-analysis)
     - [Ignore](#ignore)
     - [Comments](#comments)
-    - [Tokens](#tokens)
     - [Identifiers](#identifiers)
     - [Keywords](#keywords)
     - [Operators](#operators)
@@ -16,7 +15,6 @@
         - [Floating Point Literals](#floating-point-literals)
         - [String Literals](#string-literals)
 - [Execution Model](#execution-model)
-    - [Block](#block)
     - [Constants](#constants)
     - [Variables](#variables)  
     - [Resolution](#resolution)
@@ -30,28 +28,20 @@
     - [Object Type](#object-type)
     - [Function Type](#function-type)
 - [Expression](#expression)
+    - [Parenthesized Form](#parenthesized-form)
     - [Atoms Expressions](#atoms-expressions)
     - [Variables Expressions](#variables-expressions)
-    - [Selectors Expressions](#selectors-expressions)
-    - [Parenthesized Form](#parenthesized-form)
     - [Array Expressions](#array-expressions)
     - [Object Expressions](#object-expressions)
     - [Primaries Expressions](#primaries-expressions)
-    - [Bitwise Operations](#bitwise-operations-expression)
-    - [Arithmetic Operations](#arithmetic-operations-expression)
-    - [Comparison Operations](#comparison-operations-expression)
-    - [Boolean Operations](#boolean-operations-expression)
-    - [Closures](#closures-expression)
     - [Calls](#calls-expression)
-    - [Operator Precedence](#operator-precedence)
 - [Block](#block)
 - [Simple Statements](#simple-statements)
-    - [Empty Statements](#empty-statements)
-    - [Expression Statements](#expression-statements)
-    - [Assignment Statements](#assignment-statements)
-    - [Return Statements](#return-statements)
     - [Pass Statements](#pass-statements)
     - [Abort Statements](#abort-statements)
+    - [Assignment Statements](#assignment-statements)
+    - [Return Statements](#return-statements)
+    - [Expression Statements](#expression-statements)
 - [Compound Statements](#compound-statements)
     - [If Statements](#if-statements)
     - [Do Statements](#do-statements)
@@ -87,6 +77,8 @@ They are [Identifiers](#identifiers), [Keywords](#keywords),
 
 See the full specification
 in [Grammar Txt](https://github.com/mohalang/moha/blob/master/moha/vm/grammar/grammar.txt).
+
+## Lexical Analysis
 
 ### Ignore
 
@@ -211,6 +203,10 @@ Examples
     0x93F2A32F
     0b0100101000001011
     0O413421
+
+#### Boolean Literals
+
+A Boolean literal is either a `true` or `false` value.
 
 #### Floating Point Literals
 
@@ -350,6 +346,11 @@ A function declaration binds an identifier, the function name, to a function.
 The function's signature declares parameters.
 The function body is a statement list.
 
+### Module Type
+
+A module is formed by module members.
+These module members can be accessed by selector grammar.
+
 ## Expression
 
 An expression specifies the evaluation of a value.
@@ -434,8 +435,6 @@ Grammar:
     arguments: ["("] (expressions ","?)? [")"];
 
     expressions: expression ([","] <expression>)*;
-
-### Operator Precedence
 
 ## Statements
 
