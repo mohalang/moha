@@ -76,7 +76,7 @@ They are [Identifiers](#identifiers), [Keywords](#keywords),
 [Literals](#literals), [Operators](#operators) and [Delimiters](#delimiters).
 
 See the full specification
-in [Grammar Txt](https://github.com/mohalang/moha/blob/master/moha/vm/grammar/grammar.txt).
+in [Grammar Txt](https://github.com/mohalang/moha/blob/master/moha/vm/grammar/v0_2_0.txt).
 
 ## Lexical Analysis
 
