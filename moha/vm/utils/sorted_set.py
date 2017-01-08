@@ -26,3 +26,6 @@ class SortedSet(object):
 
     def size(self):
         return len(self.keys)
+
+    def include(self, key):
+        return key in self.keys_to_index
