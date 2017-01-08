@@ -4,7 +4,7 @@ from rpython.rlib import jit
 
 from moha.vm import code as Code
 from moha.vm.grammar import parse_source
-from moha.vm.objects import Function, Boolean, Null, Object, Array
+from moha.vm.objects import Function, Boolean, Null, Object, Array, Module
 
 def builtin_print(s):
     print(s.str())
@@ -28,6 +28,9 @@ class Bytecode(object):
         self.names = names
         self.numvars = self.vars.size()
 
+    def __repr__(self):
+        return '<bytecode>'
+
     def dump(self):
         lines = []
         i = 0
@@ -50,6 +53,7 @@ class Frame(object):
 
     def __init__(self, bc):
         self = jit.hint(self, fresh_virtualizable=True, access_directly=True)
+        self.bytecode = bc
         self.valuestack = [None] * 5 # safe estimate!
         self.vars = [None] * bc.numvars
         self.valuestack_pos = 0
@@ -77,7 +81,8 @@ class Frame(object):
         return v
 
     def top(self):
-        return self.valuestack[self.valuestack_pos]
+        pos = jit.hint(self.valuestack_pos, promote=True)
+        return self.valuestack[pos]
 
 def interpret_bytecode(frame, bc):
     bytecode = bc.code
@@ -144,13 +149,13 @@ def interpret_bytecode(frame, bc):
             map.set(key, value)
             frame.push(map)
         elif c == Code.CALL_FUNC:
-            w_func_bc = frame.pop()
-
             idx = 0
             args = []
             while idx < arg:
                 args.append(frame.pop())
                 idx += 1
+
+            w_func_bc = frame.pop()
 
             if w_func_bc.instancefunc_0 or w_func_bc.instancefunc_1 or w_func_bc.instancefunc_2 or w_func_bc.instancefunc_3:
                 # interp
@@ -249,3 +254,28 @@ def interpret_bytecode(frame, bc):
             raise Exception("abort!");
         elif c == Code.NOOP:
             pass
+        elif c == Code.IMPORT_MODULE:
+            module_name = frame.pop()
+            path = find_module(module_name)
+            module = load_module(path)
+            frame.push(module)
+
+def find_module(module_name):
+    return './lib/%s.mo' % module_name
+from rpython.rlib.streamio import open_file_as_stream
+from moha.vm.grammar.v0_2_0 import parse_source
+from moha.vm.runtime import Frame, interpret_bytecode
+from moha.vm.compiler import Compiler
+def load_module(filename):
+    f = open_file_as_stream(filename)
+    source = f.readall()
+    f.close()
+    bnf_node = parse_source(filename, source)
+    if not bnf_node:
+        return
+    compiler = Compiler()
+    compiler.dispatch(bnf_node)
+    bc = compiler.create_bytecode()
+    frame = Frame(bc)
+    interpret_bytecode(frame, bc)
+    return Module(frame)
