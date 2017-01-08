@@ -9,8 +9,12 @@ class Type(object):
         self.typeval = typeval
 
 class Null(W_Root):
-    def __init__(self):
-        self.nullval = None
+
+    def str(self):
+        return 'null'
+
+    def __repr__(self):
+        return 'null'
 
 class Boolean(W_Root):
     def __init__(self, boolval):
@@ -49,7 +53,8 @@ class String(Object):
                 'length': Function(None, None, instancefunc_1=length_string),
                 }
     def index(self, i):
-        return String(self.strval[i.intval])
+        char = self.strval[int(i.intval)]
+        return String(char)
     def length(self):
         return Integer(len(self.strval))
     def eq(self, other):
@@ -74,8 +79,8 @@ def length_array(array):
     return array.length()
 
 class Array(Object):
-    def __init__(self):
-        self.array = []
+    def __init__(self, array=None):
+        self.array = array or []
         self.dictionary = {'push': Function(None, None, instancefunc_2=push_array),
                 'pop': Function(None, None, instancefunc_1=pop_array),
                 'index': Function(None, None, instancefunc_2=index_array),
@@ -102,8 +107,8 @@ class Array(Object):
 
 
 class Integer(W_Root):
+
     def __init__(self, intval):
-        assert(isinstance(intval, int))
         self.intval = intval
 
     def __repr__(self):
@@ -191,3 +196,16 @@ class Function(W_Root):
     def str(self):
         return '<func>'
 
+class CallableArgs(W_Root):
+
+    def __init__(self, args):
+        self.args = args
+
+class Module(W_Root):
+
+    def __init__(self, frame):
+        self.frame = frame
+
+    def get(self, varname):
+        index = self.frame.bytecode.vars.keys_to_index[varname.str()]
+        return self.frame.vars[index]
