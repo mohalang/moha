@@ -113,7 +113,7 @@ class Array(Object):
 class Integer(W_Root):
 
     def __init__(self, intval):
-        self.intval = intval
+        self.intval = int(intval)
 
     def __repr__(self):
         return '%d' % self.intval
