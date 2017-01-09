@@ -3,7 +3,6 @@
 from rpython.rlib.parsing.tree import RPythonVisitor
 from moha.vm import code
 from moha.vm.objects import *
-from moha.vm.runtime import Bytecode
 from moha.vm.utils import SortedSet, NOT_FOUND
 
 class Compiler(RPythonVisitor):
@@ -230,8 +229,8 @@ class Compiler(RPythonVisitor):
 
     def visit_binary_expression(self, node):
         left, op, right = node.children[0:3]
-        self.dispatch(left)
         self.dispatch(right)
+        self.dispatch(left)
         op = op.additional_info
         if op == '+':
             self.emit(code.BINARY_ADD)

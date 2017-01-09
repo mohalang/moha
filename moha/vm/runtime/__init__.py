@@ -2,9 +2,11 @@
 
 from rpython.rlib import jit
 
+from rpython.rlib.streamio import open_file_as_stream
 from moha.vm import code as Code
-from moha.vm.grammar import parse_source
-from moha.vm.objects import Function, Boolean, Null, Object, Array, Module
+from moha.vm.objects import Function, Boolean, Null, Object, Array, Module, Sys, Bytecode
+from moha.vm.grammar.v0_2_0 import parse_source
+from moha.vm.compiler import Compiler
 
 def builtin_print(s):
     print(s.str())
@@ -18,45 +20,15 @@ driver = jit.JitDriver(greens = ['pc', 'bytecode', 'bc'],
                        virtualizables=['frame'],
                        get_printable_location=printable_loc)
 
-class Bytecode(object):
-    _immutable_fields_ = ['code', 'constants[*]', 'numvars']
-
-    def __init__(self, code, constants, vars, names):
-        self.code = code
-        self.constants = constants
-        self.vars = vars
-        self.names = names
-        self.numvars = self.vars.size()
-
-    def __repr__(self):
-        return '<bytecode>'
-
-    def dump(self):
-        lines = []
-        i = 0
-        for i in range(0, len(self.code), 2):
-            _code = self.code[i]
-            arg = self.code[i + 1]
-            line = ""
-            attrname = Code.pretty(_code)
-            line += "%d %s %d" % (i, attrname, arg)
-            if attrname == 'LOAD_CONST':
-                line += " (%s)" % self.constants[arg]
-            elif attrname == 'LOAD_VAR' or attrname == 'STORE_VAR':
-                line += " (%s)" % self.vars.keys[arg]
-            lines.append(line)
-        return '\n'.join(lines)
-
 
 class Frame(object):
-    _virtualizable_ = ['valuestack[*]', 'valuestack_pos', 'vars[*]']
+    #_virtualizable_ = ['valuestack[*]', 'valuestack_pos', 'vars[*]']
 
     def __init__(self, bc):
-        self = jit.hint(self, fresh_virtualizable=True, access_directly=True)
+        #self = jit.hint(self, fresh_virtualizable=True, access_directly=True)
         self.bytecode = bc
-        self.valuestack = [None] * 5 # safe estimate!
         self.vars = [None] * bc.numvars
-        self.valuestack_pos = 0
+        self.valuestack = []
 
     def load_var(self, index):
         val = self.vars[index]
@@ -67,24 +39,15 @@ class Frame(object):
         self.vars[index] = val
 
     def push(self, v):
-        pos = jit.hint(self.valuestack_pos, promote=True)
-        assert pos >= 0
-        self.valuestack[pos] = v
-        self.valuestack_pos = pos + 1
+        self.valuestack.append(v)
 
     def pop(self):
-        pos = jit.hint(self.valuestack_pos, promote=True)
-        new_pos = pos - 1
-        assert new_pos >= 0
-        v = self.valuestack[new_pos]
-        self.valuestack_pos = new_pos
-        return v
+        return self.valuestack.pop()
 
     def top(self):
-        pos = jit.hint(self.valuestack_pos, promote=True)
-        return self.valuestack[pos]
+        return self.valuestack[len(self.valuestack) - 1] if len(self.valuestack) >= 1 else None
 
-def interpret_bytecode(frame, bc):
+def interpret_bytecode(sys, filename, frame, bc):
     bytecode = bc.code
     pc = 0
     frame_stack = []
@@ -95,6 +58,7 @@ def interpret_bytecode(frame, bc):
         c = bytecode[pc]
         arg = bytecode[pc + 1]
         pc += 2
+        #print pc - 2, Code.pretty(c), arg
         if c == Code.POP:
             frame.pop();
         elif c == Code.LOAD_GLOBAL:
@@ -158,7 +122,8 @@ def interpret_bytecode(frame, bc):
                 idx += 1
 
             w_func_bc = frame.pop()
-            args = [w_func_bc.obj] + args
+            if w_func_bc.obj:
+                args = [w_func_bc.obj] + args
 
             if w_func_bc.instancefunc_0 or w_func_bc.instancefunc_1 or w_func_bc.instancefunc_2 or w_func_bc.instancefunc_3:
                 # interp
@@ -189,7 +154,7 @@ def interpret_bytecode(frame, bc):
                 bytecode = bc.code
                 for index, arg in enumerate(args):
                     frame.vars[index] = arg
-                if len(args) != len(frame.vars):
+                if len(args) != len(frame.vars): # recursion
                     frame.vars[len(args)] = Function(bc, None)
         elif c == Code.RETURN_VALUE:
             retval = frame.pop()
@@ -258,8 +223,8 @@ def interpret_bytecode(frame, bc):
             pass
         elif c == Code.IMPORT_MODULE:
             module_name = frame.pop()
-            path = find_module(module_name)
-            module = load_module(path)
+            path = find_module(sys, filename, module_name)
+            module = load_module(sys, path)
             frame.push(module)
         elif c == Code.IMPORT_MEMBER:
             member_name = frame.pop()
@@ -269,13 +234,17 @@ def interpret_bytecode(frame, bc):
             frame.push(module)
 
 
-def find_module(module_name):
-    return './lib/%s.mo' % module_name
-from rpython.rlib.streamio import open_file_as_stream
-from moha.vm.grammar.v0_2_0 import parse_source
-from moha.vm.runtime import Frame, interpret_bytecode
-from moha.vm.compiler import Compiler
-def load_module(filename):
+def find_module(sys, filename, module_name):
+    if module_name.strval.startswith('./'):
+        idx = len(filename) - 1
+        while idx >= 0 and filename[idx] != '/':
+            idx -= 1
+        cwd = filename[0:idx] if idx >= 0 else filename
+        return '%s/%s.mo' % (cwd, module_name.strval[2:len(module_name.strval)])
+    else:
+        return '%s/%s.mo' % (sys.get_libs_path(), module_name.strval)
+
+def load_module(sys, filename):
     f = open_file_as_stream(filename)
     source = f.readall()
     f.close()
@@ -286,5 +255,5 @@ def load_module(filename):
     compiler.dispatch(bnf_node)
     bc = compiler.create_bytecode()
     frame = Frame(bc)
-    interpret_bytecode(frame, bc)
+    interpret_bytecode(sys, filename, frame, bc)
     return Module(frame)

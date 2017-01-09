@@ -9,10 +9,7 @@ from moha.vm.main import interpret_source
 
 
 def main(argv):
-    f = open_file_as_stream(argv[1])
-    data = f.readall()
-    f.close()
-    interpret_source(argv[1], data)
+    interpret_source(argv[0], argv[1])
     return 0
 
 def target(driver, args):

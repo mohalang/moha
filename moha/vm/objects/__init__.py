@@ -21,6 +21,10 @@ class Boolean(W_Root):
         self.boolval = boolval
     def str(self):
         return 'true' if self.boolval else 'false'
+    def eq(self, other):
+        if not isinstance(other, Boolean):
+            return Boolean(False)
+        return Boolean(self.boolval == other.boolval)
     def is_true(self):
         return self.boolval
 true = Boolean(True)
@@ -210,3 +214,64 @@ class Module(W_Root):
     def get(self, varname):
         index = self.frame.bytecode.vars.keys_to_index[varname.str()]
         return self.frame.vars[index]
+
+class Sys(W_Root):
+
+    def __init__(self):
+        self.data = {}
+
+    def get_cwd(self):
+        return self.data['cwd']
+
+    def set_cwd(self, path):
+        self.data['cwd'] = path
+
+    def set_executable(self, path):
+        self.data['executable'] = path
+
+    def get_executable(self):
+        return self.data['executable']
+
+    def set_env_path(self, path):
+        self.data['env_path'] = path
+
+    def get_env_path(self):
+        return self.data['env_path']
+
+    def get_bin_path(self):
+        return '%s/bin' % self.data['env_path']
+
+    def get_libs_path(self):
+        env_path = self.get_env_path()
+        return '%s/libs' % env_path
+
+class Bytecode(object):
+    _immutable_fields_ = ['code', 'constants[*]', 'numvars']
+
+    def __init__(self, code, constants, vars, names):
+        self.code = code
+        self.constants = constants
+        self.vars = vars
+        self.names = names
+        self.numvars = self.vars.size()
+
+    def __repr__(self):
+        return '<bytecode>'
+
+    def dump(self):
+        lines = []
+        i = 0
+        for i in range(0, len(self.code), 2):
+            _code = self.code[i]
+            arg = self.code[i + 1]
+            line = ""
+            attrname = Code.pretty(_code)
+            line += "%d %s %d" % (i, attrname, arg)
+            if attrname == 'LOAD_CONST':
+                line += " (%s)" % self.constants[arg]
+            elif attrname == 'LOAD_VAR' or attrname == 'STORE_VAR':
+                line += " (%s)" % self.vars.keys[arg]
+            lines.append(line)
+        return '\n'.join(lines)
+
+
