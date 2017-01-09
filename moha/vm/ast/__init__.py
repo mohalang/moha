@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from rpython.rlib.parsing.tree import RPythonVisitor
 from moha.vm import code
+from moha.vm import operations as op
 from moha.vm.runtime import Bytecode
 from moha.vm.objects import *
 from moha.vm.utils import SortedSet, NOT_FOUND
@@ -643,17 +645,18 @@ class Transformer(object):
             name = node.children[1].additional_info
             args = node.children[3].children[0]
             arguments = []
-            while len(args.children) == 3:
-                variable = args.children[0]
-                arguments.append(variable.additional_info)
-                args = args.children[2]
-                if len(args.children) == 1:
+            if args.additional_info != ')':
+                while len(args.children) == 3:
                     variable = args.children[0]
                     arguments.append(variable.additional_info)
-                    break
-            else:
-                variable = args.children[0]
-                arguments.append(variable.additional_info)
+                    args = args.children[2]
+                    if len(args.children) == 1:
+                        variable = args.children[0]
+                        arguments.append(variable.additional_info)
+                        break
+                else:
+                    variable = args.children[0]
+                    arguments.append(variable.additional_info)
             if len(node.children) == 5:
                 rest = node.children[4]
             else:
@@ -686,6 +689,3 @@ class Transformer(object):
         return AstBlock(self._grab_stmts(node.children[0]), pop=False)
 
 transformer = Transformer()
-
-
-

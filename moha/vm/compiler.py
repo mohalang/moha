@@ -95,9 +95,12 @@ class Compiler(RPythonVisitor):
 
     def visit_import_members_from_module(self, node):
         module_name = self.extract_string(node.children[1].additional_info)
-        self.emit(code.IMPORT_MODULE, self.register_global(module_name))
+        self.emit(code.LOAD_CONST, self.register_constant(String(module_name)))
+        self.emit(code.IMPORT_MODULE)
 
         for member in node.children[0].children:
+            member_name = String(member.additional_info)
+            self.emit(code.LOAD_CONST, self.register_constant(member_name))
             self.emit(code.IMPORT_MEMBER, self.register_var(member.additional_info))
 
         self.emit(code.POP)
@@ -269,6 +272,9 @@ class Compiler(RPythonVisitor):
         self.dispatch(atom)
         for attr in attrs:
             self.dispatch(attr)
+
+    def visit_primary_expression_rest(self, node):
+        self.emit(code.CALL_FUNC, 0)
 
     def visit_arguments(self, node):
         for arg in reversed(node.children):

@@ -182,9 +182,10 @@ class Float(W_Root):
 
 class Function(W_Root):
 
-    def __init__(self, bytecode=None, interpfunc=None, instancefunc_0=None, instancefunc_1=None, instancefunc_2=None, instancefunc_3=None):
+    def __init__(self, bytecode=None, interpfunc=None, instancefunc_0=None, instancefunc_1=None, instancefunc_2=None, instancefunc_3=None, obj=None):
         self.bytecode = bytecode
         self.interpfunc = interpfunc
+        self.obj = obj
         self.instancefunc_0 = instancefunc_0
         self.instancefunc_1 = instancefunc_1
         self.instancefunc_2 = instancefunc_2

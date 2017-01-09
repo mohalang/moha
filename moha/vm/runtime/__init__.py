@@ -136,6 +136,8 @@ def interpret_bytecode(frame, bc):
             attr = frame.pop()
             obj = frame.pop()
             val = obj.get(attr)
+            if isinstance(val, Function):
+                val.obj = obj
             frame.push(val)
         elif c == Code.MAP_SETITEM:
             attr = frame.pop()
@@ -156,10 +158,10 @@ def interpret_bytecode(frame, bc):
                 idx += 1
 
             w_func_bc = frame.pop()
+            args = [w_func_bc.obj] + args
 
             if w_func_bc.instancefunc_0 or w_func_bc.instancefunc_1 or w_func_bc.instancefunc_2 or w_func_bc.instancefunc_3:
                 # interp
-                args.append(frame.pop())
                 if len(args) == 0 and w_func_bc.instancefunc_0:
                     retval = w_func_bc.instancefunc_0()
                 elif len(args) == 1 and w_func_bc.instancefunc_1:
@@ -259,6 +261,13 @@ def interpret_bytecode(frame, bc):
             path = find_module(module_name)
             module = load_module(path)
             frame.push(module)
+        elif c == Code.IMPORT_MEMBER:
+            member_name = frame.pop()
+            module = frame.pop()
+            member = module.get(member_name)
+            frame.vars[arg] = member
+            frame.push(module)
+
 
 def find_module(module_name):
     return './lib/%s.mo' % module_name

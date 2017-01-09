@@ -36,7 +36,7 @@ expression: <binary_expression> | <unary_expression>;
 binary_expression: primary_expression binary_op expression;
 unary_expression: unary_op unary_expression | <primary_expression>;
 primary_expression: atom >primary_expression_rest+< | <atom>;
-primary_expression_rest: <selector> | ["("] <arguments> [")"];
+primary_expression_rest: <selector> | ["("] <arguments> [")"] | ["("] [")"];
 selector: <identifier_selector> | <index_selector>;
 identifier_selector: ["."] IDENTIFIER;
 index_selector: ["["] expression ["]"];
