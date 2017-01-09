@@ -186,6 +186,18 @@ def interpret_bytecode(sys, filename, frame, bc):
             left = frame.pop()
             right = frame.pop()
             frame.push(left.add(right.neg()))
+        elif c == Code.BINARY_MUL:
+            left = frame.pop()
+            right = frame.pop()
+            frame.push(left.mul(right))
+        elif c == Code.BINARY_DIV:
+            left = frame.pop()
+            right = frame.pop()
+            frame.push(left.div(right))
+        elif c == Code.BINARY_MOD:
+            left = frame.pop()
+            right = frame.pop()
+            frame.push(left.mod(right))
         elif c == Code.BINARY_EQUAL:
             left = frame.pop()
             right = frame.pop()

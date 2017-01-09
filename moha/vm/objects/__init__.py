@@ -129,6 +129,21 @@ class Integer(W_Root):
             raise Exception("wrong type")
         return Integer(self.intval + other.intval)
 
+    def mul(self, other):
+        if not isinstance(other, Integer):
+            raise Exception("wrong type")
+        return Integer(self.intval * other.intval)
+
+    def div(self, other):
+        if not isinstance(other, Integer):
+            raise Exception("wrong type")
+        return Integer(self.intval / other.intval)
+
+    def mod(self, other):
+        if not isinstance(other, Integer):
+            raise Exception("wrong type")
+        return Integer(self.intval % other.intval)
+
     def lt(self, other):
         if not isinstance(other, Integer):
             raise Exception("wrong type")
