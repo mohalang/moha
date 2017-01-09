@@ -28,4 +28,5 @@ def occur(term, sentence){
         return occurs;
     }
 }
+
 print(occur("aba", "ababa"));
