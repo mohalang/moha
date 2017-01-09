@@ -23,6 +23,8 @@ def interpret_source(executable, filename):
 
     sys = Sys()
     if we_are_translated():
+        # XXX: should be at installed dir.
+        sys.set_env_path(os.getcwd())
         sys.set_executable(executable)
         sys.set_cwd(os.getcwd())
     else:
