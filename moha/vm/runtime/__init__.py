@@ -58,7 +58,7 @@ def interpret_bytecode(sys, filename, frame, bc):
         c = bytecode[pc]
         arg = bytecode[pc + 1]
         pc += 2
-        #print pc - 2, Code.pretty(c), arg
+        # print pc - 2, Code.pretty(c), arg
         if c == Code.POP:
             frame.pop();
         elif c == Code.LOAD_GLOBAL:
@@ -96,6 +96,11 @@ def interpret_bytecode(sys, filename, frame, bc):
                 idx += 1
             array.copy(reversed(args))
             frame.push(array)
+        elif c == Code.MAP_HASITEM:
+            left = frame.pop()
+            right = frame.pop()
+            is_in = right.has(left)
+            frame.push(is_in)
         elif c == Code.MAP_GETITEM:
             attr = frame.pop()
             obj = frame.pop()

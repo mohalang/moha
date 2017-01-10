@@ -52,7 +52,7 @@ object_entry_value: <closure> | <expression>;
 closure: ["def"] ["("] args [")"] block;
 args: IDENTIFIER [","] >args< | IDENTIFIER;
 unary_op: <"+"> | <"-"> | <"!">;
-binary_op: <"||"> | <"&&"> | <"=="> | <"!="> | <"<"> | <"<="> | <">"> | <">="> | <"+"> | <"-"> | <"|"> | <"^"> | <"*"> | <"/"> | <"%"> | <"<<"> | <">>"> | <"&"> | <"&^">;
+binary_op: <"||"> | <"&&"> | <"=="> | <"!="> | <"<"> | <"<="> | <">"> | <">="> | <"+"> | <"-"> | <"|"> | <"^"> | <"*"> | <"/"> | <"%"> | <"<<"> | <">>"> | <"&"> | <"&^"> | <"in">;
 atom: <literal> | <IDENTIFIER> | <array_literal> | <object_literal> | <parenthesized_form> | <closure>;
 parenthesized_form: ["("] <expression> [")"];
 integer_literal: <DECIMAL_LITERAL> | <OCTAL_LITERAL> | <HEX_LITERAL >| <BIN_LITERAL>;

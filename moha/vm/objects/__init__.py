@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from moha.vm import code as Code
+
 class W_Root(object):
     def str(self):
         return ''
@@ -47,6 +49,10 @@ class Object(W_Root):
         return self.dictionary[key.str()]
     def set(self, key, value):
         self.dictionary[key.str()] = value
+    def has(self, key):
+        return Boolean(key.str() in self.dictionary)
+    def delete(self, key):
+        del self.dictionary[key.str()]
     def str(self):
         return '{%s}' % ','.join(['%s:%s' % (key, value.str()) for key, value in self.dictionary.iteritems()])
 
@@ -104,6 +110,17 @@ class Array(Object):
         return Null()
     def pop(self):
         return self.array.pop()
+    def has(self, elem):
+        return Boolean(elem in self.array)
+    def eq(self, other):
+        if not isinstance(other, Array):
+            return Boolean(False)
+        if len(other.array) != len(self.array):
+            return Boolean(False)
+        for index, elem in enumerate(self.array):
+            if not elem.eq(other.array[index]):
+                return Boolean(False)
+        return Boolean(True)
     def length(self):
         return Integer(len(self.array))
     def str(self):

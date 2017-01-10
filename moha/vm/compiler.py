@@ -229,9 +229,16 @@ class Compiler(RPythonVisitor):
 
     def visit_binary_expression(self, node):
         left, op, right = node.children[0:3]
+        op = op.additional_info
+        if op == '&&':
+            self.dispatch(left)
+            self.emit(code.JUMP_IF_FALSE_OR_POP)
+            pos = len(self.codes) - 1
+            self.dispatch(right)
+            self.codes[pos] = len(self.codes)
+            return
         self.dispatch(right)
         self.dispatch(left)
-        op = op.additional_info
         if op == '+':
             self.emit(code.BINARY_ADD)
         elif op == '-':
@@ -264,6 +271,14 @@ class Compiler(RPythonVisitor):
             self.emit(code.BINARY_XOR)
         elif op == '%':
             self.emit(code.BINARY_MOD)
+        elif op == 'in':
+            self.emit(code.MAP_HASITEM)
+
+    def visit_in(self, node):
+        elem, pool = node.children[0], node.children[1]
+        self.dispatch(elem)
+        self.dispatch(pool)
+        self.emit(code.MAP_HASITEM)
 
     def visit_primary_expression(self, node):
         atom = node.children[0]
