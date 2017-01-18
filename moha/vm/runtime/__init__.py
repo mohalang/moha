@@ -81,6 +81,8 @@ def interpret_bytecode(sys, filename, frame, bc):
             frame.load_var(arg)
         elif c == Code.STORE_VAR:
             frame.store_var(arg)
+        elif c == Code.DEL_VAR:
+            pass
         elif c == Code.LOAD_CONST:
             frame.push(bc.constants[arg])
         elif c == Code.BUILD_MAP:
@@ -113,6 +115,10 @@ def interpret_bytecode(sys, filename, frame, bc):
             obj = frame.pop()
             val = frame.pop()
             obj.set(attr, val)
+        elif c == Code.MAP_DELITEM:
+            attr = frame.pop()
+            obj = frame.pop()
+            obj.delete(attr)
         elif c == Code.STORE_MAP:
             value = frame.pop()
             key = frame.pop()

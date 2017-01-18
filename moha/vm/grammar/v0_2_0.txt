@@ -18,7 +18,7 @@ export_selected_members_as_module: ["export"] export_members ["as"] STRING_LITER
 export_members: IDENTIFIER [","] >export_members< | IDENTIFIER;
 statement: expression [";"] | <compound_statement> | <simple_statement> [";"];
 compound_statement: <block> | <if> | <do> | <def>;
-simple_statement: <pass> | <abort> | <return> | <assignment> ;
+simple_statement: <pass> | <abort> | <return> | <assignment> | <unbound>;
 block: ["{"] >statement+< ["}"];
 guardcommand: ["("] expression [")"] block;
 if: ["if"] guardcommand+;
@@ -32,6 +32,8 @@ abort: ["abort"] expression;
 assignment: assignment_left  ["="] assignment_right;
 assignment_left: IDENTIFIER >selector*<;
 assignment_right: <expression>;
+unbound: ["del"] >unbound_target<;
+unbound_target: IDENTIFIER >selector+<;
 expression: <test>;
 test: <or_test>;
 or_test: and_test >(["||"] and_test)+< | <and_test>;

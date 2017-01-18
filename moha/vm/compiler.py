@@ -148,6 +148,14 @@ class Compiler(RPythonVisitor):
         self.dispatch(node.children[0])
         self.emit(code.RETURN_VALUE)
 
+    def visit_unbound(self, node):
+        identifier = node.children[0]
+        self.dispatch(identifier)
+        attrs = node.children[1:]
+        for attr in attrs:
+            self.dispatch(attr)
+        self.codes[len(self.codes) - 2] = code.MAP_DELITEM
+
     def visit_assignment(self, node):
         left, right = node.children[0], node.children[1]
         self.dispatch(right)

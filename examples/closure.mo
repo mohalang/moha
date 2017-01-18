@@ -8,3 +8,5 @@ adder = {
 print(adder.closure());
 print(adder.closure());
 print(adder.integer);
+del adder.closure;
+print(adder);
