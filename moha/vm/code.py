@@ -7,6 +7,9 @@ EXIT = 8
 POP_TOP = 31
 POP = 17
 
+DUP_TOP = 50
+ROT_THREE = 51
+
 #: tos = -tos
 UNARY_NEGATIVE = 32
 

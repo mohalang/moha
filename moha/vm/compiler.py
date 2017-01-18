@@ -353,7 +353,7 @@ class Compiler(RPythonVisitor):
         self.emit(code.LOAD_CONST, self.register_constant(Null()))
 
     def visit_boolean_literal(self, node):
-        boolean = node.additional_info == 'true'
+        boolean = node.children[0].additional_info == 'true'
         self.emit(code.LOAD_CONST, self.register_constant(Boolean(boolean)))
 
     def visit_block(self, node):
@@ -363,3 +363,115 @@ class Compiler(RPythonVisitor):
     def visit_guardcommand_body(self, node):
         for statement in node.children:
             self.dispatch(statement)
+
+    def visit_or_test(self, node):
+        pos = -1
+        total = len(node.children)
+        for index, and_test in enumerate(node.children):
+            self.dispatch(and_test)
+            if pos != -1:
+                self.codes[pos] = len(self.codes)
+            if index < total - 1:
+                self.emit(code.JUMP_IF_TRUE_OR_POP)
+            pos = len(self.codes) - 1
+
+    def visit_and_test(self, node):
+        pos = -1
+        total = len(node.children)
+        for index, not_test in enumerate(node.children):
+            self.dispatch(not_test)
+            if pos != -1:
+                self.codes[pos] = len(self.codes)
+            if index < total - 1:
+                self.emit(code.JUMP_IF_FALSE_OR_POP)
+            pos = len(self.codes) - 1
+
+    def visit_not_test(self, node):
+        self.dispatch(node.children[0])
+        self.emit(code.NOT)
+
+    def visit_comparison(self, node):
+        left, op, right = node.children[0:3]
+        op = op.additional_info
+        self.dispatch(right)
+        self.dispatch(left)
+        if op == '==':
+            self.emit(code.BINARY_EQUAL)
+        elif op == '<':
+            self.emit(code.BINARY_LT)
+        elif op == '>':
+            self.emit(code.BINARY_GT)
+        elif op == '<=':
+            self.emit(code.BINARY_LE)
+        elif op == '>=':
+            self.emit(code.BINARY_GE)
+        elif op == '!=':
+            self.emit(code.BINARY_NE)
+        elif op == 'in':
+            self.emit(code.MAP_HASITEM)
+
+    def visit_or_expr(self, node):
+        for xor_expr in node.children:
+            self.dispatch(xor_expr)
+            self.emit(code.BINARY_OR)
+
+    def visit_xor_expr(self, node):
+        for and_expr in node.children:
+            self.dispatch(and_expr)
+            self.emit(code.BINARY_XOR)
+
+    def visit_and_expr(self, node):
+        for shift_expr in node.children:
+            self.dispatch(shift_expr)
+            self.emit(code.BINARY_AND)
+
+    def visit_shift_expr(self, node):
+        self.dispatch(node.children[0])
+        index = 1
+        while index < len(node.children):
+            shift_op, arith_expr = node.children[index], node.children[index + 1]
+            shift_op = shift_op.additional_info
+            self.dispatch(arith_expr)
+            if shift_op == '<<':
+                self.emit(code.BINARY_LSHIFT)
+            elif shift_op == '>>':
+                self.emit(code.BINARY_RSHIFT)
+            else:
+                raise NotImplementedError
+
+    def visit_arith_expr(self, node):
+        self.dispatch(node.children[0])
+        index = 1
+        while index < len(node.children):
+            arith_op, term = node.children[index], node.children[index + 1]
+            arith_op = arith_op.additional_info
+            self.dispatch(term)
+            if arith_op == '+':
+                self.emit(code.BINARY_ADD)
+            elif arith_op == '-':
+                self.emit(code.BINARY_SUB)
+            index = index + 2
+
+    def visit_term(self, node):
+        self.dispatch(node.children[0])
+        index = 1
+        while index < len(node.children):
+            term_op, factor = node.children[index], node.children[index + 1]
+            term_op = term_op.additional_info
+            self.dispatch(factor)
+            if term_op == '*':
+                self.emit(code.BINARY_MUL)
+            elif term_op == '/':
+                self.emit(code.BINARY_DIV)
+            elif term_op == '%':
+                self.emit(code.BINARY_MOD)
+            index = index + 2
+
+    def visit_factor(self, node):
+        self.dispatch(node.children[1])
+        if node.children[0].additional_info == '-':
+            self.emit(code.UNARY_NEGATIVE)
+        elif node.children[0].additional_info == '~':
+            self.emit(code.UNARY_INVERT)
+        else:
+            raise NotImplementedError

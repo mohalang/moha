@@ -89,7 +89,7 @@ def test_statement_if():
     tree = statement('if (a == 1) { a = 2; } (a == 2) { a = 1; }')
     assert tree.symbol == 'if'
     assert tree.children[0].symbol == 'guardcommand'
-    assert tree.children[0].children[0].symbol == 'expression'
+    assert tree.children[0].children[0].symbol == 'comparison'
     assert tree.children[0].children[1].symbol == 'block'
     assert tree.children[1].symbol == 'guardcommand'
 
@@ -97,7 +97,7 @@ def test_statement_do():
     tree = statement('do (a == 1) { a = 2; } (a == 2) { a = 1; }')
     assert tree.symbol == 'do'
     assert tree.children[0].symbol == 'guardcommand'
-    assert tree.children[0].children[0].symbol == 'expression'
+    assert tree.children[0].children[0].symbol == 'comparison'
     assert tree.children[0].children[1].symbol == 'block'
     assert tree.children[1].symbol == 'guardcommand'
 
@@ -125,132 +125,207 @@ def test_statement_def_args():
 
 def test_expression_decimal():
     tree = statement('1;')
-    assert tree.symbol == 'DECIMAL_LITERAL';
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'DECIMAL_LITERAL'
 
 def test_expression_octal():
     tree = statement('0o1;')
-    assert tree.symbol == 'OCTAL_LITERAL';
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'OCTAL_LITERAL'
     tree = statement('0O1;')
-    assert tree.symbol == 'OCTAL_LITERAL';
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'OCTAL_LITERAL'
 
 def test_expression_hex_literal():
     tree = statement('0xffff;')
-    assert tree.symbol == 'HEX_LITERAL';
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'HEX_LITERAL'
     tree = statement('0XFFFF;')
-    assert tree.symbol == 'HEX_LITERAL';
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'HEX_LITERAL'
 
 def test_expression_bin_literal():
     tree = statement('0b101;');
-    assert tree.symbol == 'BIN_LITERAL';
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'BIN_LITERAL'
     tree = statement('0B101;');
-    assert tree.symbol == 'BIN_LITERAL';
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'BIN_LITERAL'
 
 def test_expression_float_literal():
     tree = statement('1.0;');
-    assert tree.symbol == 'FLOAT_LITERAL';
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'FLOAT_LITERAL'
 
 def test_expression_string_literal():
     tree = statement('"hello world";');
-    assert tree.symbol == 'STRING_LITERAL';
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'STRING_LITERAL'
 
 def test_expression_plus_expression():
     tree = statement('+1;');
-    assert tree.symbol == 'unary_expression'
-    assert tree.children[0].additional_info == '+'
-    assert tree.children[1].symbol == 'DECIMAL_LITERAL';
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'factor'
 
 def test_expression_minus_expression():
     tree = statement('-1;');
-    assert tree.symbol == 'unary_expression'
-    assert tree.children[0].additional_info == '-'
-    assert tree.children[1].symbol == 'DECIMAL_LITERAL';
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'factor'
 
-def test_expression_not_expression():
-    tree = statement('!true;');
-    assert tree.symbol == 'unary_expression'
-    assert tree.children[0].additional_info == '!'
-    assert tree.children[1].symbol == 'boolean_literal';
-
-@pytest.mark.parametrize('op', ['||', '&&', '==', '!=', '<', '>', '<=', '>=', '+', '-', '|', '^', '*', '/', '%', '<<', '>>', '&', '&^'])
-def test_expression_bin_expression(op):
+@pytest.mark.parametrize('op', ['==', '!=', '>=', '<=', '>', '<'])
+def test_comparison(op):
     tree = statement('1 %s 1;' % op);
-    assert tree.symbol == 'expression'
-    assert tree.children[0].symbol == 'DECIMAL_LITERAL'
-    assert tree.children[1].additional_info == op
-    assert tree.children[2].symbol == 'DECIMAL_LITERAL'
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'comparison'
+
+def test_or_test():
+    tree = statement('false || true;')
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'or_test'
+
+def test_and_test():
+    tree = statement('false && true;')
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'and_test'
+
+def test_expression_not_test():
+    tree = statement('!true;');
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'not_test'
+
+def test_or_expr():
+    tree = statement('1 | 1;')
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'or_expr'
+
+def test_xor_expr():
+    tree = statement('1 ^ 1;')
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'xor_expr'
+
+def test_and_expr():
+    tree = statement('1 & 1;')
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'and_expr'
+
+
+@pytest.mark.parametrize('op', ['<<', '>>'])
+def test_shift_expr(op):
+    tree = statement('1 %s 1;' % op)
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'shift_expr'
+
+@pytest.mark.parametrize('op', ['+', '-'])
+def test_arith_expr(op):
+    tree = statement('1 %s 1;' % op)
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'arith_expr'
+
+@pytest.mark.parametrize('op', ['*', '/', '%'])
+def test_term(op):
+    tree = statement('1 %s 1;' % op)
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'term'
+
+@pytest.mark.parametrize('op', ['+', '-', '~'])
+def test_factor(op):
+    tree = statement('%s1;' % op)
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'factor'
 
 def test_expression_identifier_selector():
     tree = statement('object.selector;')
-    assert tree.symbol == 'primary_expression'
-    assert tree.children[0].symbol == 'IDENTIFIER'
-    assert tree.children[1].symbol == 'identifier_selector'
-    assert tree.children[1].children[0].symbol == 'IDENTIFIER'
-    assert tree.children[1].children[0].additional_info == 'selector'
+    assert tree.symbol == 'statement'
+    expr = tree.children[0]
+    assert expr.symbol == 'primary_expression'
+    assert expr.children[0].symbol == 'IDENTIFIER'
+    assert expr.children[1].symbol == 'identifier_selector'
+    assert expr.children[1].children[0].symbol == 'IDENTIFIER'
+    assert expr.children[1].children[0].additional_info == 'selector'
 
 def test_expression_index_selector():
     tree = statement('object["selector"];')
-    assert tree.symbol == 'primary_expression'
-    assert tree.children[0].symbol == 'IDENTIFIER'
-    assert tree.children[1].symbol == 'index_selector'
-    assert tree.children[1].children[0].symbol == 'STRING_LITERAL'
-    assert tree.children[1].children[0].additional_info == '"selector"'
+    assert tree.symbol == 'statement'
+    expr = tree.children[0]
+    assert expr.symbol == 'primary_expression'
+    assert expr.children[0].symbol == 'IDENTIFIER'
+    assert expr.children[1].symbol == 'index_selector'
+    assert expr.children[1].children[0].symbol == 'STRING_LITERAL'
+    assert expr.children[1].children[0].additional_info == '"selector"'
 
 def test_expression_argument():
     tree = statement('funccall();')
-    assert tree.symbol == 'primary_expression'
-    assert tree.children[0].symbol == 'IDENTIFIER'
-    assert tree.children[1].symbol == 'arguments'
-    assert len(tree.children[1].children) == 0
+    assert tree.symbol == 'statement'
+    expr = tree.children[0]
+    assert expr.symbol == 'primary_expression'
+    assert expr.children[0].symbol == 'IDENTIFIER'
+    assert expr.children[1].symbol == 'arguments'
+    assert len(expr.children[1].children) == 0
 
 def test_expression_argument():
     tree = statement('funccall(1);')
-    assert tree.symbol == 'primary_expression'
-    assert tree.children[0].symbol == 'IDENTIFIER'
-    assert tree.children[1].symbol == 'arguments'
-    assert len(tree.children[1].children) == 1
+    assert tree.symbol == 'statement'
+    expr = tree.children[0]
+    assert expr.symbol == 'primary_expression'
+    assert expr.children[0].symbol == 'IDENTIFIER'
+    assert expr.children[1].symbol == 'arguments'
+    assert len(expr.children[1].children) == 1
 
 def test_expression_argument():
     tree = statement('funccall(1, 2);')
-    assert tree.symbol == 'primary_expression'
-    assert tree.children[0].symbol == 'IDENTIFIER'
-    assert tree.children[1].symbol == 'arguments'
-    assert len(tree.children[1].children) == 2
+    assert tree.symbol == 'statement'
+    expr = tree.children[0]
+    assert expr.symbol == 'primary_expression'
+    assert expr.children[0].symbol == 'IDENTIFIER'
+    assert expr.children[1].symbol == 'arguments'
+    assert len(expr.children[1].children) == 2
 
 def test_expression_selector_mix_argument():
     tree = statement('object.method(1, 2);')
-    assert tree.symbol == 'primary_expression'
-    assert tree.children[0].symbol == 'IDENTIFIER'
-    assert tree.children[1].symbol == 'identifier_selector'
-    assert tree.children[2].symbol == 'arguments'
+    assert tree.symbol == 'statement'
+    expr = tree.children[0]
+    assert expr.symbol == 'primary_expression'
+    assert expr.children[0].symbol == 'IDENTIFIER'
+    assert expr.children[1].symbol == 'identifier_selector'
+    assert expr.children[2].symbol == 'arguments'
 
 def test_expression_empty_array():
     tree = statement('[];')
-    assert tree.symbol == 'array_literal'
-    assert len(tree.children) == 0
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'array_literal'
+    assert len(tree.children[0].children) == 0
 
 def test_expression_single_element_array():
     tree = statement('[1];')
-    assert tree.symbol == 'array_literal'
-    assert len(tree.children) == 1
-    assert tree.children[0].symbol == 'DECIMAL_LITERAL'
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'array_literal'
+    assert len(tree.children[0].children) == 1
+    assert tree.children[0].children[0].symbol == 'DECIMAL_LITERAL'
 
 def test_expression_multiple_elements_array():
     tree = statement('[1, 2];')
-    assert tree.symbol == 'array_literal'
-    assert len(tree.children) == 2
-    assert tree.children[1].symbol == 'DECIMAL_LITERAL'
+    assert tree.symbol == 'statement'
+    assert tree.children[0].symbol == 'array_literal'
+    assert len(tree.children[0].children) == 2
+    assert tree.children[0].children[1].symbol == 'DECIMAL_LITERAL'
 
 def test_expression_empty_object():
     tree = statement('{};')
-    assert tree.symbol == 'object_literal'
-    assert len(tree.children) == 0
+    assert tree.symbol == 'statement'
+    expr = tree.children[0]
+    assert expr.symbol == 'object_literal'
+    assert len(expr.children) == 0
 
 def test_expression_single_entry_object():
     tree = statement('{"integer": 1};')
-    assert tree.symbol == 'object_literal'
-    assert len(tree.children) == 1
+    assert tree.symbol == 'statement'
+    expr = tree.children[0]
+    assert expr.symbol == 'object_literal'
+    assert len(expr.children) == 1
 
 def test_expression_multi_entries_object():
     tree = statement('{"integer": 1, "float": 1.0};')
-    assert tree.symbol == 'object_literal'
-    assert len(tree.children) == 1
+    assert tree.symbol == 'statement'
+    expr = tree.children[0]
+    assert expr.symbol == 'object_literal'
+    assert len(expr.children) == 2

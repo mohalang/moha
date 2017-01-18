@@ -184,24 +184,24 @@ def interpret_bytecode(sys, filename, frame, bc):
         elif c == Code.JMP:
             pc = arg
         elif c == Code.BINARY_ADD:
-            left = frame.pop()
             right = frame.pop()
+            left = frame.pop()
             frame.push(left.add(right))
         elif c == Code.BINARY_SUB:
-            left = frame.pop()
             right = frame.pop()
+            left = frame.pop()
             frame.push(left.add(right.neg()))
         elif c == Code.BINARY_MUL:
-            left = frame.pop()
             right = frame.pop()
+            left = frame.pop()
             frame.push(left.mul(right))
         elif c == Code.BINARY_DIV:
-            left = frame.pop()
             right = frame.pop()
+            left = frame.pop()
             frame.push(left.div(right))
         elif c == Code.BINARY_MOD:
-            left = frame.pop()
             right = frame.pop()
+            left = frame.pop()
             frame.push(left.mod(right))
         elif c == Code.BINARY_EQUAL:
             left = frame.pop()
