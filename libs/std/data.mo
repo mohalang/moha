@@ -1,4 +1,9 @@
 def set() {
+    # Data Structure: Hash Set
+    # method: add
+    # method: remove
+    # method: size
+    # method: has
     return {
         "_data": {},
         "_size": 0,

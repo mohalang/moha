@@ -13,6 +13,9 @@ def interpret_source(executable, filename):
     f = open_file_as_stream(filename)
     source = f.readall()
     f.close()
+    sources = source.splitlines()
+    sources = [line for line in sources if not line.strip().startswith('#')]
+    source = '\n'.join(sources)
 
     bnf_node = parse_source(filename, source)
     if not bnf_node:
