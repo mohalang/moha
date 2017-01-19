@@ -3,18 +3,20 @@ def set() {
         "_data": {},
         "_size": 0,
         "add": def(this, element) {
-            if (element in this._data) {
+            has = element in this._data;
+            if (has) {
                 pass;
-            } (!(element in this._data)) {
+            } (!has) {
                 this._size = this._size + 1;
                 this._data[element] = 0;
             }
         },
         "remove": def(this, element) {
-            if (element in this._data) {
+            has = element in this._data;
+            if (has) {
                 this._size = this._size - 1;
                 del this._data[element];
-            } (!(element in this._data)) {
+            } (!has) {
                 pass;
             }
         },
