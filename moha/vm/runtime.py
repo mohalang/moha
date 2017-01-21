@@ -4,9 +4,12 @@ from rpython.rlib import jit
 
 from rpython.rlib.streamio import open_file_as_stream
 from moha.vm import code as Code
-from moha.vm.objects import Function, Boolean, Null, Object, Array, Module, Sys, Bytecode
+from moha.vm.objects import Function, Boolean, Null, Object, Array, Module, Sys, Bytecode, String
 from moha.vm.grammar.v0_2_0 import parse_source
 from moha.vm.compiler import Compiler
+
+def builtin_str(s):
+    return String(s.str())
 
 def builtin_print(s):
     print(s.str())
@@ -153,6 +156,8 @@ def interpret_bytecode(sys, filename, frame, bc):
                 func_interp = w_func_bc.interpfunc
                 if func_interp == 'print':
                     retval = builtin_print(args[0])
+                elif func_interp == 'str':
+                    retval = builtin_str(args[0])
                 else:
                     raise Exception("Unresolved variable %s" % func_interp)
                 frame.push(retval)

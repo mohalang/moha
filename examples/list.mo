@@ -1,0 +1,20 @@
+import list from "std/data";
+
+mylist = list();
+mylist.push("hello");
+mylist.push("world");
+mylist.push("42");
+print("original: " + mylist.to_string());
+print("size: " + mylist.size());
+print("slice 0-1: " + mylist.slice(0, 1).to_string());
+print("pop: " + mylist.pop());
+print("after pop: " + mylist.to_string());
+mylist.unshift("42");
+print("after unshift: " + mylist.to_string());
+print("shift: " + mylist.shift());
+print("after shift: " + mylist.to_string());
+print("contains 42?: " + mylist.contains("42"));
+print("contains world?: " + mylist.contains("world"));
+print("index of 42: " + mylist.index_of("42"));
+print("index of world: " + mylist.index_of("world"));
+print("last index of hello: " + mylist.last_index_of("hello"));

@@ -29,11 +29,10 @@ class Boolean(W_Root):
         return Boolean(self.boolval == other.boolval)
     def is_true(self):
         return self.boolval
-true = Boolean(True)
-false = Boolean(False)
 
 def index_string(string, index):
     return string.index(index)
+
 def length_string(string):
     return string.length()
 
@@ -68,7 +67,9 @@ class String(Object):
     def length(self):
         return Integer(len(self.strval))
     def eq(self, other):
-        return Boolean(self.strval == other.strval)
+        return Boolean(self.strval == other.str())
+    def add(self, other):
+        return String(self.strval + other.str())
 
     def __repr__(self):
         return "%s" % self.strval
@@ -77,7 +78,6 @@ class String(Object):
         return str(self.strval)
 
 
-from rpython.tool.sourcetools import func_with_new_name
 
 def push_array(array, elem):
     return array.push(elem)
@@ -125,6 +125,8 @@ class Array(Object):
         return Integer(len(self.array))
     def str(self):
         return '[%s]' % ','.join([a.str() for a in self.array])
+    def set(self, key, value):
+        self.array[key.intval] = value
 
 
 class Integer(W_Root):
@@ -305,6 +307,3 @@ class Bytecode(object):
                 line += " (%s)" % self.vars.keys[arg]
             lines.append(line)
         return '\n'.join(lines)
-
-
-
