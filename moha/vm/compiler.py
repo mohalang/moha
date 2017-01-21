@@ -218,7 +218,7 @@ class Compiler(RPythonVisitor):
         inner_index = inner_ctx.register_var(def_name.additional_info)
         inner_ctx.visit_block(def_block)
         if inner_ctx.codes[len(inner_ctx.codes) - 2] != code.RETURN_VALUE:
-            inner_ctx.emit(code.LOAD_CONST, self.register_constant(Null()))
+            inner_ctx.emit(code.LOAD_CONST, self.register_constant(Null.singleton()))
             inner_ctx.emit(code.RETURN_VALUE)
         bc = inner_ctx.create_bytecode()
         fn = Function(bc)
@@ -357,14 +357,14 @@ class Compiler(RPythonVisitor):
             inner_ctx.register_var(arg.additional_info)
         inner_ctx.dispatch(node.children[1])
         if inner_ctx.codes[len(inner_ctx.codes) - 2] != code.RETURN_VALUE:
-            inner_ctx.emit(code.LOAD_CONST, inner_ctx.register_constant(Null()))
+            inner_ctx.emit(code.LOAD_CONST, inner_ctx.register_constant(Null.singleton()))
             inner_ctx.emit(code.RETURN_VALUE)
         bc = inner_ctx.create_bytecode()
         w = Function(bc)
         self.emit(code.LOAD_CONST, self.register_constant(w))
 
     def visit_null_literal(self, node):
-        self.emit(code.LOAD_CONST, self.register_constant(Null()))
+        self.emit(code.LOAD_CONST, self.register_constant(Null.singleton()))
 
     def visit_boolean_literal(self, node):
         boolean = node.children[0].additional_info == 'true'

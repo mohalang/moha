@@ -20,6 +20,11 @@ class Null(W_Root):
     def __repr__(self):
         return 'null'
 
+    @classmethod
+    def singleton(cls):
+        return null
+
+null = Null()
 
 class Boolean(W_Root):
     def __init__(self, boolval):
@@ -117,7 +122,7 @@ class Array(Object):
         return self.array[int(i.intval)]
     def push(self, elem):
         self.array.append(elem)
-        return Null()
+        return Null.singleton()
     def pop(self):
         return self.array.pop()
     def has(self, elem):

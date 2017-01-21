@@ -13,7 +13,7 @@ def builtin_str(s):
 
 def builtin_print(s):
     print(s.str())
-    return Null()
+    return Null.singleton()
 
 def builtin_id(s):
     return Integer(s.hash())
