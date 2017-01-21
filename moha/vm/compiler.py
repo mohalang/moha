@@ -368,7 +368,7 @@ class Compiler(RPythonVisitor):
 
     def visit_boolean_literal(self, node):
         boolean = node.children[0].additional_info == 'true'
-        self.emit(code.LOAD_CONST, self.register_constant(Boolean(boolean)))
+        self.emit(code.LOAD_CONST, self.register_constant(Boolean.from_raw(boolean)))
 
     def visit_block(self, node):
         for statement in node.children:

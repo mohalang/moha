@@ -15,6 +15,9 @@ def builtin_print(s):
     print(s.str())
     return Null()
 
+def builtin_id(s):
+    return Integer(s.hash())
+
 def printable_loc(pc, code, bc):
     return "%d %d" % (pc, code[pc])
 
@@ -229,21 +232,21 @@ def interpret_bytecode(sys, filename, frame, bc):
         elif c == Code.BINARY_LE:
             left = frame.pop()
             right = frame.pop()
-            frame.push(Boolean(left.lt(right).boolval or left.eq(right).boolval))
+            frame.push(Boolean.from_raw(left.lt(right).boolval or left.eq(right).boolval))
         elif c == Code.BINARY_GE:
             left = frame.pop()
             right = frame.pop()
-            frame.push(Boolean(left.gt(right).boolval or left.eq(right).boolval))
+            frame.push(Boolean.from_raw(left.gt(right).boolval or left.eq(right).boolval))
         elif c == Code.BINARY_NE:
             left = frame.pop()
             right = frame.pop()
-            frame.push(Boolean(not left.eq(right).boolval))
+            frame.push(Boolean.from_raw(not left.eq(right).boolval))
         elif c == Code.NOT:
             val = frame.pop()
             if val.is_true():
-                pval = Boolean(False)
+                pval = Boolean.from_raw(False)
             else:
-                pval = Boolean(True)
+                pval = Boolean.from_raw(True)
             frame.push(pval)
         elif c == Code.ABORT:
             raise Exception("abort!");

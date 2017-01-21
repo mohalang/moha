@@ -5,6 +5,8 @@ from moha.vm import code as Code
 class W_Root(object):
     def str(self):
         return ''
+    def hash(self):
+        return id(self)
 
 class Type(object):
     def __init__(self, typeval):
@@ -18,6 +20,7 @@ class Null(W_Root):
     def __repr__(self):
         return 'null'
 
+
 class Boolean(W_Root):
     def __init__(self, boolval):
         self.boolval = boolval
@@ -25,11 +28,18 @@ class Boolean(W_Root):
         return 'true' if self.boolval else 'false'
     def eq(self, other):
         if not isinstance(other, Boolean):
-            return Boolean(False)
-        return Boolean(self.boolval == other.boolval)
+            return Boolean.from_raw(False)
+        return Boolean.from_raw(self.boolval == other.boolval)
     def is_true(self):
         return self.boolval
-
+    @classmethod
+    def from_raw(cls, b):
+        if b:
+            return true
+        else:
+            return false
+true = Boolean(True)
+false = Boolean(False)
 def index_string(string, index):
     return string.index(index)
 
@@ -49,7 +59,7 @@ class Object(W_Root):
     def set(self, key, value):
         self.dictionary[key.str()] = value
     def has(self, key):
-        return Boolean(key.str() in self.dictionary)
+        return Boolean.from_raw(key.str() in self.dictionary)
     def delete(self, key):
         del self.dictionary[key.str()]
     def str(self):
@@ -67,7 +77,7 @@ class String(Object):
     def length(self):
         return Integer(len(self.strval))
     def eq(self, other):
-        return Boolean(self.strval == other.str())
+        return Boolean.from_raw(self.strval == other.str())
     def add(self, other):
         return String(self.strval + other.str())
 
@@ -111,16 +121,16 @@ class Array(Object):
     def pop(self):
         return self.array.pop()
     def has(self, elem):
-        return Boolean(elem in self.array)
+        return Boolean.from_raw(elem in self.array)
     def eq(self, other):
         if not isinstance(other, Array):
-            return Boolean(False)
+            return Boolean.from_raw(False)
         if len(other.array) != len(self.array):
-            return Boolean(False)
+            return Boolean.from_raw(False)
         for index, elem in enumerate(self.array):
             if not elem.eq(other.array[index]):
-                return Boolean(False)
-        return Boolean(True)
+                return Boolean.from_raw(False)
+        return Boolean.from_raw(True)
     def length(self):
         return Integer(len(self.array))
     def str(self):
@@ -166,15 +176,15 @@ class Integer(W_Root):
     def lt(self, other):
         if not isinstance(other, Integer):
             raise Exception("wrong type")
-        return Boolean(self.intval < other.intval)
+        return Boolean.from_raw(self.intval < other.intval)
     def gt(self, other):
         if not isinstance(other, Integer):
             raise Exception("wrong type")
-        return Boolean(self.intval > other.intval)
+        return Boolean.from_raw(self.intval > other.intval)
     def eq(self, other):
         if not isinstance(other, Integer):
             raise Exception("wrong type")
-        return Boolean(self.intval == other.intval)
+        return Boolean.from_raw(self.intval == other.intval)
 
     def is_true(self):
         return self.intval != 0
@@ -205,15 +215,15 @@ class Float(W_Root):
     def lt(self, other):
         if not isinstance(other, Float):
             raise Exception("wrong type")
-        return Boolean(self.floatval < other.floatval)
+        return Boolean.from_raw(self.floatval < other.floatval)
     def gt(self, other):
         if not isinstance(other, Float):
             raise Exception("wrong type")
-        return Boolean(self.floatval > other.floatval)
+        return Boolean.from_raw(self.floatval > other.floatval)
     def eq(self, other):
         if not isinstance(other, Float):
             raise Exception("wrong type")
-        return Boolean(self.floatval == other.floatval)
+        return Boolean.from_raw(self.floatval == other.floatval)
 
     def str(self):
         return str(self.floatval)
