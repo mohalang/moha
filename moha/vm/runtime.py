@@ -283,3 +283,4 @@ def load_module(sys, filename):
     frame = Frame(bc)
     interpret_bytecode(sys, filename, frame, bc)
     return Module(frame)
+

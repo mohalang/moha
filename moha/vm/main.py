@@ -4,7 +4,6 @@ import os
 from rpython.rlib.streamio import open_file_as_stream
 from rpython.rlib.objectmodel import we_are_translated
 from moha.vm.grammar.v0_2_0 import parse_source
-from moha.vm.ast import transformer, CompilerContext
 from moha.vm.objects import Sys
 from moha.vm.runtime import Frame, interpret_bytecode
 from moha.vm.compiler import Compiler
