@@ -5,8 +5,6 @@ from moha.vm import code as Code
 class W_Root(object):
     def str(self):
         return ''
-    def hash(self):
-        return id(self)
 
 class Type(object):
     def __init__(self, typeval):
@@ -133,7 +131,7 @@ class Array(Object):
         if len(other.array) != len(self.array):
             return Boolean.from_raw(False)
         for index, elem in enumerate(self.array):
-            if not elem.eq(other.array[index]):
+            if not elem.eq(other.array[index]).is_true():
                 return Boolean.from_raw(False)
         return Boolean.from_raw(True)
     def length(self):
