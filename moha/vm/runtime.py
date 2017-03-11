@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import os
 from rpython.rlib import jit
-
+from rpython.rlib.objectmodel import we_are_translated
 from rpython.rlib.streamio import open_file_as_stream
+
 from moha.vm import code as Code
 from moha.vm.objects import Function, Boolean, Null, Object, Array, Module, Sys, Bytecode, String
 from moha.vm.grammar.v0_2_0 import parse_source
@@ -161,6 +163,8 @@ def interpret_bytecode(sys, filename, frame, bc):
                     retval = builtin_print(args[0])
                 elif func_interp == 'str':
                     retval = builtin_str(args[0])
+                elif func_interp == 'id':
+                    retval = builtin_id(args[0])
                 else:
                     raise Exception("Unresolved variable %s" % func_interp)
                 frame.push(retval)
@@ -275,20 +279,41 @@ def find_module(sys, filename, module_name):
     else:
         return '%s/%s.mo' % (sys.get_libs_path(), module_name.strval)
 
-def load_module(sys, filename):
+def read_source(filename):
     f = open_file_as_stream(filename)
     source = f.readall()
     f.close()
     sources = source.splitlines()
     sources = [line for line in sources if not line.strip().startswith('#')]
     source = '\n'.join(sources)
+    return source
+
+def compile_source(filename, source):
     bnf_node = parse_source(filename, source)
     if not bnf_node:
+        raise Exception("We cannot get source bnf node.")
         return
+
     compiler = Compiler()
     compiler.dispatch(bnf_node)
     bc = compiler.create_bytecode()
-    frame = Frame(bc)
-    interpret_bytecode(sys, filename, frame, bc)
-    return Module(frame)
+    return Frame(bc)
 
+def init_sys(executable):
+    sys = Sys()
+    if we_are_translated():
+        # XXX: should be at installed dir.
+        sys.set_env_path(os.getcwd())
+        sys.set_executable(executable)
+        sys.set_cwd(os.getcwd())
+    else:
+        sys.set_env_path(os.getcwd())
+        sys.set_executable(os.getcwd() + executable)
+        sys.set_cwd(os.getcwd())
+    return sys
+
+def load_module(sys, filename):
+    source = read_source(filename)
+    frame = compile_source(filename, source)
+    interpret_bytecode(sys, filename, frame, frame.bytecode)
+    return Module(frame)
