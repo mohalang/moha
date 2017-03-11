@@ -253,7 +253,9 @@ def interpret_bytecode(sys, filename, frame, bc):
                 pval = Boolean.from_raw(True)
             frame.push(pval)
         elif c == Code.ABORT:
-            raise Exception("abort!");
+            top = frame.pop()
+            print('Error: %s' % top)
+            exit(1)
         elif c == Code.NOOP:
             pass
         elif c == Code.IMPORT_MODULE:
