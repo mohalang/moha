@@ -6,10 +6,13 @@ from rpython.rlib.streamio import open_file_as_stream
 from rpython.jit.codewriter.policy import JitPolicy
 
 from moha.vm.main import interpret_source
+from moha.vm.runtime import init_sys, load_module
 
 
 def main(argv):
-    interpret_source(argv[0], argv[1])
+    executable, filename = argv[0], argv[1]
+    sys = init_sys(executable)
+    load_module(sys, filename)
     return 0
 
 def target(driver, args):
